@@ -9,6 +9,7 @@ layout: default
 - [REST 分域速查](rest.md)
 - [GraphQL 参考](graphql.md)
 - [不可逆与破坏性操作安全规则](safety.md)
+- [时效性自检报告（自动生成）](last-verified.md)
 
 ## 安装到 Agent
 
