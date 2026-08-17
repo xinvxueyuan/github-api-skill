@@ -54,7 +54,7 @@ description: >-
 ## 分页约定
 - **offset 分页**：`per_page`（1–100，默认 30） + `page`（从 1 起）。适合 issues/commits/releases 等绝大多数列表。
 - **Link 头**：响应 `Link: <...page=2>; rel="next"` —— 规范做法是逐页跟随 rel=next，而不是死循环。
-- **cursor 分页**（个别端点，如组织审计日志 `after`/`before`）：用游标参数，见具体端点文档；search 仍是 offset 分页。
+- **cursor 分页**（个别端点）：用游标参数，见具体端点文档；search 仍是 offset 分页。
 - **GraphQL 分页**：连接对象 `edges { node } pageInfo { hasNextPage endCursor }`；用 `first: N`（最多 100）取，cursor 翻页。
 - **上限**：写工具时设 maxPages/per_page 上限防失控；截断要提示用户，别把截断结果当完整。
 
