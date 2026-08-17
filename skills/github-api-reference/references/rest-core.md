@@ -1,18 +1,18 @@
 # REST 分域端点速查（github-api-reference）
 
-> 依据 GitHub REST API（X-GitHub-Api-Version: 2022-11-28）。路径中 `{o}`=owner、`{r}`=repo、`{n}`=number/id。
+> 依据 GitHub REST API（X-GitHub-Api-Version: 2026-03-10，当前最新版；不带头默认 2022-11-28）。路径中 `{o}`=owner、`{r}`=repo、`{n}`=number/id。
 > 公开文档：https://docs.github.com/rest 。不确定字段一律回查官方文档。
 
 ## Issues & Pull Requests
 | 端点 | 方法 | 关键点 |
 | --- | --- | --- |
-| `repos/{o}/{r}/issues` | GET/POST | 列表查询 `state=sorted/direction/per_page/page`；POST body `{title, body, labels[], assignees[]}` |
+| `repos/{o}/{r}/issues` | GET/POST | 列表查询 `state/labels/sort/direction/since/per_page/page`；POST body `{title, body, labels[], assignees[]}` |
 | `repos/{o}/{r}/issues/{n}` | GET/PATCH | PATCH 可改 title/body/state/labels/assignees/milestone |
 | `repos/{o}/{r}/issues/{n}/comments` | GET/POST | issue 评论 |
 | `repos/{o}/{r}/pulls` | GET/POST | 列表 `state/base/head`；POST 需 `head`、`base`，可选 title/body |
 | `repos/{o}/{r}/pulls/{n}` | GET/PATCH | PATCH 合并请求字段 |
 | `repos/{o}/{r}/pulls/{n}/reviews` | GET/POST | POST `{event: APPROVE/REQUEST_CHANGES/COMMENT, body}` |
-| `repos/{o}/{r}/pulls/{n}/merge` | PUT | 合并参数 `commit_title/merge_method/merge_commit_message/sha` |
+| `repos/{o}/{r}/pulls/{n}/merge` | PUT | 合并参数 `commit_title/commit_message/merge_method/sha` |
 | `search/issues?q=...` | GET | `q`=repo:o/r + 条件；`sort/order/per_page` |
 
 ## Repos & Contents
@@ -25,15 +25,18 @@
 | `repos/{o}/{r}/commits` | GET | 提交历史 `sha/path/since/until/per_page` |
 | `repos/{o}/{r}/compare/{base}...{head}` | GET | 比较两 ref 差异 |
 | `repos/{o}/{r}/branches` / `/branches/{b}` | GET | 分支；分支保护走 `/branches/{b}/protection` |
-| `repos/{o}/{r}/collaborators` | GET/PUT/DELETE | 协作者（PUT 需 `permission`） |
+| `repos/{o}/{r}/collaborators` | GET | 协作者列表 |
+| `repos/{o}/{r}/collaborators/{username}` | GET/PUT/DELETE | 单个协作者（PUT 需 `permission`） |
 
 ## Releases & Tags
 | 端点 | 方法 | 关键点 |
 | --- | --- | --- |
 | `repos/{o}/{r}/releases` | GET/POST | POST body `{tag_name, target_commitish, name?, body?, draft?, prerelease?}` |
 | `repos/{o}/{r}/releases/{id}` | GET/PATCH/DELETE | PATCH 改字段；DELETE 删除 release（不可逆，先确认） |
-| `repos/{o}/{r}/releases/{id}/assets` | GET/POST | POST 上传二进制：`Accept: application/octet-stream`，`Content-Type` 按文件；path `?name=` |
-| `repos/{o}/{r}/git/refs/tags` | GET/POST | 底层 tag/ref（refs/heads 同理） |
+| `repos/{o}/{r}/releases/{id}/assets` | GET/POST | POST 上传二进制：`Content-Type` 按文件类型或 `application/octet-stream`，query `?name=` 必填 |
+| `repos/{o}/{r}/git/refs` | GET/POST | 列/建引用（列可用 `?ref=` 过滤，如 `refs/heads`） |
+| `repos/{o}/{r}/git/refs/{ref}` | GET/PATCH/DELETE | 单个引用（`{ref}` 如 `heads/main`、`tags/v1`） |
+| `repos/{o}/{r}/git/matching-refs/{ref}` | GET | 匹配前缀的引用列表 |
 
 ## Actions / Workflows
 | 端点 | 方法 | 关键点 |
@@ -43,9 +46,10 @@
 | `repos/{o}/{r}/actions/runs` | GET | 列运行 `branch/event/status` |
 | `repos/{o}/{r}/actions/runs/{id}` | GET | 单次运行详情 |
 | `repos/{o}/{r}/actions/runs/{id}/jobs` | GET | 该运行的任务 |
-| `repos/{o}/{r}/actions/runs/{id}/rerun` | POST | 重跑（失败的任务可 `rerun-failed-jobs`） |
+| `repos/{o}/{r}/actions/runs/{id}/rerun` | POST | 重跑；仅重跑失败任务用 `/actions/runs/{id}/rerun-failed-jobs` |
 | `repos/{o}/{r}/actions/artifacts` | GET | 列构件 |
-| `repos/{o}/{r}/actions/secrets` | GET/PUT/DELETE | 仓库 secret（PUT body `{encrypted_value, key_id}`；覆盖会不可逆） |
+| `repos/{o}/{r}/actions/secrets` | GET | 列 secret |
+| `repos/{o}/{r}/actions/secrets/{name}` | GET/PUT/DELETE | 单个 secret（PUT body `{encrypted_value, key_id}`；覆盖会不可逆） |
 
 ## Users / Orgs / Misc
 | 端点 | 方法 | 关键点 |
@@ -54,10 +58,10 @@
 | `users/{u}/repos` | GET | 用户仓库列表 |
 | `orgs/{o}/repos` | GET/POST | 组织仓库 |
 | `orgs/{o}/teams` | GET | 组织团队 |
-| `orgs/{o}/audit-log` | GET | 审计日志（需权限） |
-| `user/gists` | GET/POST | 概要（代码片段） |
-| `rate_limit` | GET | 查各类配额 |
-| `meta` | GET | 元信息（Git 地址/API 版本） |
+| `gists` | GET/POST | 当前用户的 gists（列表/创建） |
+| `users/{u}/gists` | GET | 某用户的 gists |
+| `rate_limit` | GET | 查各类配额（`resources.*`；旧 `rate` 字段已弃用） |
+| `meta` | GET | 元信息（Git/Web 地址、SSH 指纹、IP 段等） |
 
 ## 通用注意
 - 写操作 body 一律 JSON；`updated` 类字段不必传。

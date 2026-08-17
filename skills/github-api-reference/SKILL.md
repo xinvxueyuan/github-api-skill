@@ -44,7 +44,7 @@ description: >-
 ## 认证与请求基础
 - **token 用途**：读公共数据可匿名，但更稳是带 token（gitHub 主限流从 60→用户 5000/时）。
 - **Authorization 头**：`Authorization: Bearer <token>` 或 `token <token>`（gh CLI 自动处理）。
-- **API 版本头**：`X-GitHub-Api-Version: 2022-11-28`（当前稳定版；不带头则回退到老版行为，字段可能变化——务必带上）。
+- **API 版本头**：`X-GitHub-Api-Version: 2026-03-10`（当前最新版）；不带头则默认 `2022-11-28`（旧版行为，字段可能不同）——务必显式带最新版头；无效版本返回 400/410。
 - **Accept 头**：默认 `application/vnd.github+json`；raw 文件用 `application/vnd.github.raw+json`。
 - **User-Agent**：GitHub 要求携带自定义 UA，缺省会 403。
 - **Base URL**：`https://api.github.com`；企业版为 `https://HOST/api/v3`（或 /graphql）。
@@ -54,14 +54,14 @@ description: >-
 ## 分页约定
 - **offset 分页**：`per_page`（1–100，默认 30） + `page`（从 1 起）。适合 issues/commits/releases 等绝大多数列表。
 - **Link 头**：响应 `Link: <...page=2>; rel="next"` —— 规范做法是逐页跟随 rel=next，而不是死循环。
-- **cursor 分页**（部分端点，如 audit log、某些 search）：用游标参数，见具体端点文档。
+- **cursor 分页**（个别端点，如组织审计日志 `after`/`before`）：用游标参数，见具体端点文档；search 仍是 offset 分页。
 - **GraphQL 分页**：连接对象 `edges { node } pageInfo { hasNextPage endCursor }`；用 `first: N`（最多 100）取，cursor 翻页。
 - **上限**：写工具时设 maxPages/per_page 上限防失控；截断要提示用户，别把截断结果当完整。
 
 ## 限流约定
-- **主限流 core**：未认证 60/时，认证 5000/时（按用户）。响应头 `X-RateLimit-Limit/-Remaining/-Reset`。
-- **search**：未认证 10/分，认证 30/分；`GET /rate_limit` 可查各资源配额。
-- **GraphQL**：按点复用 core 配额（约同 core）。
+- **主限流 core**：未认证 60/时，认证 5000/时（按用户；GitHub App 安装 token 配额另计，见官方文档）。响应头 `X-RateLimit-Limit/-Remaining/-Reset`。
+- **search**：未认证 10/分，认证 30/分（search code 端点认证后仍限 10/分且必须认证）；`GET /rate_limit` 可查各资源配额。
+- **GraphQL**：独立点数配额（认证用户 5,000 点/时），与 REST core 分开计算。
 - **429/403 处理**：读 `Retry-After` / `X-RateLimit-Reset`（epoch 秒），指数退避；不要并发打满；写操作在限流边缘更要慢。
 
 ## 安全规则（不可逆/破坏性操作）
@@ -85,7 +85,7 @@ description: >-
 ## 若仍不确定
 1. 查本技能 references/。
 2. 回官方文档：REST https://docs.github.com/rest · GraphQL https://docs.github.com/graphql。
-3. 用 GitHub OpenAPI 权威定义核对字段：https://docs.github.com/en/rest/overview/resources-in-the-rest-api（openapi.json 链接）。
+3. 用 GitHub OpenAPI 权威定义核对字段：https://docs.github.com/en/rest/overview/openapi-description（openapi.json 链接）。
 4. 对陌生写端点：先读官方 doc 的参数与状态码，不要靠猜。
 
 ## 参考文件（按需读取）
