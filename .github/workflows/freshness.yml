@@ -20,7 +20,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      # Script always exits 0 (writes report regardless); drift is triaged in the issue step.
+      # Script exits 1 when drift is found; we must still commit the report in that
+      # case, so the exit code is swallowed here and drift is triaged by the issue step.
       - name: Run freshness check
         id: verify
         env:
@@ -45,11 +46,17 @@ jobs:
             const fs = require('fs');
             let p = { failures: 0 };
             try { p = JSON.parse(fs.readFileSync('docs/last-verified.json', 'utf8')); } catch {}
-            if (!p.failures) { console.log('no drift detected'); return; }
             const { owner, repo } = context.repo;
             const wanted = 'GitHub API 时效性告警：检测到端点漂移';
             const open = await github.rest.issues.listForRepo({ owner, repo, state: 'open', per_page: 100 });
-            if (open.data.some((i) => i.title === wanted)) { console.log('drift issue already open'); return; }
-            const body = fs.readFileSync('docs/last-verified.md', 'utf8');
-            await github.rest.issues.create({ owner, repo, title: wanted, body });
-            console.log('opened drift issue');
+            const drift = open.data.find((i) => i.title === wanted);
+            if (p.failures) {
+              if (drift) { console.log('drift issue already open'); return; }
+              const body = fs.readFileSync('docs/last-verified.md', 'utf8');
+              await github.rest.issues.create({ owner, repo, title: wanted, body });
+              console.log('opened drift issue');
+            } else {
+              if (!drift) { console.log('no drift detected'); return; }
+              await github.rest.issues.update({ owner, repo, issue_number: drift.number, state: 'closed' });
+              console.log('drift resolved; closed issue #' + drift.number);
+            }
