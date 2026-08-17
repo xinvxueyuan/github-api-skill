@@ -1,0 +1,11 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "API Reference",
+      "description": "GitHub API 权威参考：REST + GraphQL + 安全规则，避免 Agent 猜测与误操作。",
+      "skills": ["github-api-reference"]
+    }
+  ]
+}

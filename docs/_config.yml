@@ -1,0 +1,7 @@
+title: GitHub API Skill
+description: 权威 GitHub API 参考（REST + GraphQL + 安全规则）
+remote_theme: pages-themes/cayman@v0.2.0
+plugins:
+- jekyll-remote-theme
+
+show_downloads: false
