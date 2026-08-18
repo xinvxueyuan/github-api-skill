@@ -52,7 +52,7 @@ async function liveCheck(path) {
   if (TOKEN) headers.Authorization = 'Bearer ' + TOKEN
   try {
     const res = await fetch(url, { headers, signal: AbortSignal.timeout(20000) })
-    return { path, url, status: res.status, apiVer: res.headers.get('x-github-api-version-selected') || '', note: '' }
+    return { path, url, status: res.status, apiVer: res.headers.get('x-github-api-version-selected') || res.headers.get('x-github-api-version') || '', note: '' }
   } catch (e) {
     return { path, url, status: 'ERR', note: e instanceof Error ? e.message : String(e) }
   }
