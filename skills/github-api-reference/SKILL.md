@@ -42,7 +42,7 @@ description: >-
 | 精确按需选字段、类型安全 | | ✅ |
 
 ## 认证与请求基础
-- **token 用途**：读公共数据可匿名，但更稳是带 token（gitHub 主限流从 60→用户 5000/时）。
+- **token 用途**：读公共数据可匿名，但更稳是带 token（GitHub 主限流从 60→用户 5000/时）。
 - **Authorization 头**：`Authorization: Bearer <token>` 或 `token <token>`（gh CLI 自动处理）。
 - **API 版本头**：`X-GitHub-Api-Version: 2026-03-10`（当前最新版）；不带头则默认 `2022-11-28`（旧版行为，字段可能不同）——务必显式带最新版头；无效版本返回 400/410。
 - **Accept 头**：默认 `application/vnd.github+json`；raw 文件用 `application/vnd.github.raw+json`。
